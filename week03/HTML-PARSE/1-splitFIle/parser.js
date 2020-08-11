@@ -1,4 +1,13 @@
+let currentToken = null; // 已经解析的 token
 const EOF = Symbol('EOF'); // EOF：end of file
+
+/**
+ * 输出 token
+ * @param {*} token 
+ */
+function emit(token){
+    console.log(token);
+}
 
 /**
  * 初始状态
@@ -8,9 +17,17 @@ function data(c){
     if (c === '<') {
         return tagOpen
     }else if (c === EOF) {
+        emit({
+            type: EOF
+        })
         return;
     }else{
-        return data
+        // 输出文本
+        emit({
+            type: 'text',
+            content: c
+        })
+        return data;
     }
 
 }
@@ -22,7 +39,14 @@ function tagOpen(c){
     if(c === '/'){//是否为结束标签
         return endTagOpen
     }else if (c.match(/^[a-zA-Z]$/)) { //匹配 tag 名称
+        
+        currentToken = {
+            type: 'startTag', // 包括开始标签和自封闭。自封闭通过单独状态标示
+            tagName: '',
+        }
+
         return tagName(c)
+
     }else{
         return;
     }
@@ -34,6 +58,12 @@ function tagOpen(c){
 function endTagOpen(c){
 
     if (c.match(/^[a-zA-Z]$/)) {
+
+        emit({
+            type:'endTag',
+            tagName:''
+        })
+
         return tagName(c)
     }else if (c === '>') {
         
@@ -54,9 +84,11 @@ function tagName(c){
     }else if (c === '/') {
         // 自封闭标签
         return selfClosingStartTag;
-    }else if (c.match(/^[a-zA-Z]$/)) {
-        return tagName
+    }else if (c.match(/^[a-zA-Z]$/)) { //字母
+        currentToken.tagName += c; // 拼接标签名称
+        return tagName;
     }else if (c === '>') {
+        emit(currentToken)
         return data; //结束一个标签解析，进入下一个
     }else{
         return tagName
