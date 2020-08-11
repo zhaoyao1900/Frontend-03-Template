@@ -1,4 +1,5 @@
 let currentToken = null; // 已经解析的 token
+let currentAttribute = null; 
 const EOF = Symbol('EOF'); // EOF：end of file
 
 /**
@@ -94,21 +95,6 @@ function tagName(c){
         return tagName
     }
 }
-/**
- * 属性名开始
- * @param {*} c 
- */
-function beforeAttributeName(c){
-    if (c.match(/^[\t\n\f ]$/)) {
-        return beforeAttributeName;
-    }else if (c === '>') {
-        return data;
-    }else if (c === '=') {
-        return beforeAttributeName;
-    }else{
-        return beforeAttributeName;
-    }
-}
 
 /**
  * 自封闭标签
@@ -123,6 +109,168 @@ function selfClosingStartTag(c){
     }else{
 
     }
+}
+
+//==============属性
+
+/**
+ * 属性名开始
+ * @param {*} c 
+ */
+function beforeAttributeName(c){
+    if (c.match(/^[\t\n\f ]$/)) {
+        return beforeAttributeName;
+    }else if (c === '>' || c === '/' || c === EOF) {
+        return afterAttributeName(c);
+    }else if (c === '=') {
+    }else{
+        currentAttribute = {
+            name:'',
+            value:''
+        }
+
+        return attributeName(c);
+    }
+}
+/**
+ * 属性值
+ * @param {*} c 
+ */
+function beforeAttributeValue(c) {
+    if(c.match(/^[\n\t\f ]$/) || c === '/' || c === '>' || c === EOF){
+        return beforeAttributeValue;
+    }else if (c === '\"') { //双引号
+        return doubleQuotedAttributeValue;
+    }else if (c === '\'') { //单引号
+        return singleQuotedAttributeValue;
+    }else if (c === '>') {
+        
+    }else{
+        return unQuotedAttributeValue(c);
+    }
+}
+/**
+ * 双引号
+ * @param {*} c 
+ */
+function doubleQuotedAttributeValue(c){
+    if (c === '\"') { //双引号结束
+        currentToken[currentAttribute.name] = currentAttribute.value;
+        return afterQuotedAttributeValue;
+    }else if (c === '\u0000') {
+         
+    }else if (c === EOF) {
+        
+    }else {
+        currentAttribute.value += c;
+        return doubleQuotedAttributeValue;
+    }
+}
+/**
+ * 单引号
+ * @param {*} c 
+ */
+function singleQuotedAttributeValue(c){
+    if (c === '\'') {
+        currentToken[currentAttribute.name] = currentAttribute.value;
+        return afterQuotedAttributeValue;
+    }else if (c === '\u0000') {
+        
+    }else if(c === EOF){
+
+    }else{
+        currentAttribute.value += c;
+        return doubleQuotedAttributeValue;
+    }
+}
+
+/**
+ * 在单双引号解析完进入
+ * @param {*} c 
+ */
+function afterQuotedAttributeValue(c){
+    if (c.match(/^[\n\t\f ]$/)) {
+        return beforeAttributeName;
+    }else if (c === '/') {
+        return selfClosingStartTag;
+    } else if (c === '>') {
+        currentToken[currentAttribute.name] = currentAttribute.value;
+        emit(currentToken);
+        return data;
+    }else if (c === EOF){
+
+    }else {
+        currentAttribute.value += c;
+        return doubleQuotedAttributeValue;
+    }
+}
+
+/**
+ * 
+ * @param {*} c 
+ */
+function unQuotedAttributeValue(c) {
+    if (c.match(/^[\n\t\f ]$/)) {
+        currentToken[currentAttribute.name] = currentAttribute.value;
+        return beforeAttributeValue;
+    }else if (c === '/') {
+        currentToken[currentAttribute.name] = currentAttribute.value;
+        return selfClosingStartTag;
+    }else if (c === '>') {
+        currentToken[currentAttribute.name] = currentAttribute.value;
+        emit(currentToken);
+        return data;
+    }else if ( c === '\u0000') {
+        
+    }else if (c === '\"' || c === '<' || c === '`' || c === '=' || c === "'" ) {
+        
+    }else if (c === EOF) {
+        
+    }else{
+        currentAttribute.value += c;
+        return unQuotedAttributeValue;
+    }
+}
+
+/**
+ * 解析属性名称
+ * @param {*} c 
+ */
+function attributeName(c){
+
+    if (c.match(/^[\t\n\f ]$/) || c === '/' || c === EOF) {
+        return afterAttributeName(c)
+    }else if( c === '='){
+        return beforeAttributeValue;
+    }else if (c === '\u0000') {
+        
+    }else if (c === '\"' || c === "'" || c === '<') {
+        
+    }else {
+        currentAttribute.value += c;
+        return attributeName;
+    }
+
+}
+
+/**
+ * 属性名结束
+ * @param {*} c 
+ */
+function afterAttributeName(c){
+
+    if (c.match(/^[a-zA-Z]$/)) {
+        currentToken[currentAttribute.name] = currentAttribute.value;
+        emit(currentToken);
+        return data;
+    }else if (c === '>') {
+        
+    }else if (c === EOF) {
+        
+    }else{
+
+    }
+
 }
 
 
