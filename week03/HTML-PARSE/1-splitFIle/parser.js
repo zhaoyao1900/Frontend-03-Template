@@ -1,6 +1,7 @@
 let currentToken = null; // 已经解析的 token
 let currentAttribute = null; 
 const EOF = Symbol('EOF'); // EOF：end of file
+let stack = [{type: "document", children: []}]; // 用stack构建 DOM 
 
 /**
  * 输出 token
@@ -8,6 +9,50 @@ const EOF = Symbol('EOF'); // EOF：end of file
  */
 function emit(token){
     console.log(token);
+    if (token.type === 'text') 
+        return;
+
+    // 取出栈顶
+    let top = stack[stack.length -1]
+
+    if (token.type === 'startTag') {
+        
+        // element 是 DOM 层中 tag 的映射
+        let element = {
+            type: 'element',
+            children: [],
+            attributes: []
+        }
+        
+        element.tagName = token.tagName;
+
+        // 设置属性
+        for (const p in token) {
+            if (p !== 'tagName' &&  p !== 'type') {
+                element.attributes.push({
+                    name: p,
+                    value: token[p]
+                })     
+            }
+        }
+        top.children.push(element);
+        element.parent = top;
+
+        if (!token.isSelfClosing) {
+            stack.push(element)
+        }
+        
+        currentTextToken = null;
+    }else if (token.tagName === 'endTag') {
+        if (top.tagName !== token.tagName) { // 标签是否闭合
+            throw new Error("Tag start end doen't match!")
+        }else{
+            stack.pop()
+        }
+        currentTextToken = null;
+    }
+
+        
 }
 
 /**
@@ -19,7 +64,7 @@ function data(c){
         return tagOpen
     }else if (c === EOF) {
         emit({
-            type: EOF
+            type: ""
         })
         return;
     }else{
@@ -59,11 +104,10 @@ function tagOpen(c){
 function endTagOpen(c){
 
     if (c.match(/^[a-zA-Z]$/)) {
-
-        emit({
-            type:'endTag',
-            tagName:''
-        })
+        currentToken = {
+            type: 'endTag',
+            tagName: '',
+        }
 
         return tagName(c)
     }else if (c === '>') {
@@ -125,7 +169,7 @@ function beforeAttributeName(c){
     }else if (c === '=') {
     }else{
         currentAttribute = {
-            name:'',
+            name: c, //warning: 视频中 ""
             value:''
         }
 
@@ -171,7 +215,7 @@ function doubleQuotedAttributeValue(c){
  * @param {*} c 
  */
 function singleQuotedAttributeValue(c){
-    if (c === '\'') {
+    if (c === "\'") {
         currentToken[currentAttribute.name] = currentAttribute.value;
         return afterQuotedAttributeValue;
     }else if (c === '\u0000') {
@@ -222,7 +266,7 @@ function unQuotedAttributeValue(c) {
         return data;
     }else if ( c === '\u0000') {
         
-    }else if (c === '\"' || c === '<' || c === '`' || c === '=' || c === "'" ) {
+    }else if (c === "\"" || c === "'" || c === '<' || c === '=' || c === '`' ) {
         
     }else if (c === EOF) {
         
@@ -238,7 +282,7 @@ function unQuotedAttributeValue(c) {
  */
 function attributeName(c){
 
-    if (c.match(/^[\t\n\f ]$/) || c === '/' || c === EOF) {
+    if (c.match(/^[\t\n\f ]$/) || c === '/' || c === '>' || c === EOF) {
         return afterAttributeName(c)
     }else if( c === '='){
         return beforeAttributeValue;
@@ -259,16 +303,23 @@ function attributeName(c){
  */
 function afterAttributeName(c){
 
-    if (c.match(/^[a-zA-Z]$/)) {
+    if (c.match(/^[\n\t\f ]$/)) {
+        return attributeName;
+    }else if (c === '/') {
+        return selfClosingStartTag;
+    }else if (c === '>') {
         currentToken[currentAttribute.name] = currentAttribute.value;
         emit(currentToken);
         return data;
-    }else if (c === '>') {
-        
-    }else if (c === EOF) {
+    }if (c === EOF) {
         
     }else{
-
+        currentToken[currentAttribute.name] = currentAttribute.value;
+        currentAttribute = {
+            name:'',
+            value:''
+        }
+        return attributeName(c);
     }
 
 }
@@ -286,5 +337,5 @@ module.exports.parseHTML = function parseHTML(html){
     state = state(EOF);
 
 
-    console.log(html)
+    console.log('stack',stack[0])
 }
