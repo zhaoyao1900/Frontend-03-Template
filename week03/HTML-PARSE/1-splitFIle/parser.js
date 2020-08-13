@@ -1,5 +1,6 @@
 let currentToken = null; // 已经解析的 token
-let currentAttribute = null; 
+let currentAttribute = null;  
+let currentTextNode = null;
 const EOF = Symbol('EOF'); // EOF：end of file
 let stack = [{type: "document", children: []}]; // 用stack构建 DOM 
 
@@ -9,8 +10,6 @@ let stack = [{type: "document", children: []}]; // 用stack构建 DOM
  */
 function emit(token){
     console.log(token);
-    if (token.type === 'text') 
-        return;
 
     // 取出栈顶
     let top = stack[stack.length -1]
@@ -42,14 +41,24 @@ function emit(token){
             stack.push(element)
         }
         
-        currentTextToken = null;
-    }else if (token.tagName === 'endTag') {
+        currentTextToken = null; //清空文本
+    }else if (token.type === 'endTag') {
         if (top.tagName !== token.tagName) { // 标签是否闭合
             throw new Error("Tag start end doen't match!")
         }else{
             stack.pop()
         }
         currentTextToken = null;
+    }else if (token.type === 'text') {
+        if (currentTextNode == null) {
+            currentTextNode = {
+                type: 'text',
+                content: ''
+            };
+            top.children.push(currentTextNode);
+        }
+        // 合并相邻文本节点
+        currentTextNode.content += token.content;
     }
 
         
