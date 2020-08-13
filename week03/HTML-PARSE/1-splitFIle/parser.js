@@ -1,3 +1,4 @@
+const css = require('css');
 let currentToken = null; // 已经解析的 token
 let currentAttribute = null;  
 let currentTextNode = null;
@@ -34,6 +35,10 @@ function emit(token){
                 })     
             }
         }
+
+        // CSS 设置到 DOM 
+        computeCSS(element);
+
         top.children.push(element);
         element.parent = top;
 
@@ -46,6 +51,13 @@ function emit(token){
         if (top.tagName !== token.tagName) { // 标签是否闭合
             throw new Error("Tag start end doen't match!")
         }else{
+            // 样式文本入栈
+            top.children.push(currentTextNode);
+
+            //遇到 style 结束标签，取出其中所有内容开始解析。
+            if (top.tagName === 'style') {
+                addCSSRules(top.children[0].content)
+            }
             stack.pop()
         }
         currentTextToken = null;
@@ -59,10 +71,11 @@ function emit(token){
         }
         // 合并相邻文本节点
         currentTextNode.content += token.content;
+
     }
 
-        
 }
+//===========================解析标签===============================
 
 /**
  * 初始状态
@@ -164,7 +177,7 @@ function selfClosingStartTag(c){
     }
 }
 
-//==============属性
+//===========================解析属性===============================
 
 /**
  * 属性名开始
@@ -330,6 +343,30 @@ function afterAttributeName(c){
         }
         return attributeName(c);
     }
+}
+
+//===========================CSS Computing===============================
+let rules = []; // css 规则集
+/**
+ * 收集 CSS 规则
+ * @param {*} text 样式文本
+ */
+function addCSSRules(text) {
+    var ast = css.parse(text);
+    console.log(JSON.stringify(ast,null, "  "))
+    rules.push([...ast.stylesheet.rules]);
+}
+/**
+ * 将 CSS 融入 DOM
+ */
+function computeCSS(element){
+
+    // 获取父元素序列
+    // slice() 空参复制数组
+    // reverse() 方便向上寻找 selecter
+    var elements = stack.slice().reverse()
+    
+
 
 }
 
