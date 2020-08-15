@@ -10,7 +10,7 @@ let stack = [{type: "document", children: []}]; // 用stack构建 DOM
  * @param {*} token 
  */
 function emit(token){
-    console.log(token);
+    // console.log(token);
 
     // 取出栈顶
     let top = stack[stack.length -1]
@@ -35,6 +35,7 @@ function emit(token){
                 })     
             }
         }
+        // console.log(element);
 
         // CSS 设置到 DOM 
         computeCSS(element);
@@ -51,7 +52,6 @@ function emit(token){
         if (top.tagName !== token.tagName) { // 标签是否闭合
             throw new Error("Tag start end doen't match!")
         }else{
-            // 样式文本入栈
             top.children.push(currentTextNode);
 
             //遇到 style 结束标签，取出其中所有内容开始解析。
@@ -354,7 +354,7 @@ let rules = []; // css 规则集
 function addCSSRules(text) {
     var ast = css.parse(text);
     console.log(JSON.stringify(ast,null, "  "))
-    rules.push([...ast.stylesheet.rules]);
+    rules = [...ast.stylesheet.rules];
 }
 /**
  * 将 CSS 融入 DOM
@@ -366,11 +366,65 @@ function computeCSS(element){
     // reverse() 方便向上寻找 selecter
     var elements = stack.slice().reverse()
     
+    // 存放CSS的属性
+    if (!element.computedStyle) {
+        element.computedStyle = {};    
+    }
+
+    for (const rule of rules) {
+        // 让选择器顺序和元素保持一致
+        var selectorParts = rule.selectors[0].split(" ").reverse();
+
+        if (!match(element, selectorParts[0])) 
+            continue;
+
+        let matched = false;//是否匹配
+        let j = 1; // 选择器位置
+        for (let index = 0; index < elements.length; index++) {
+            if (match(elements[i], selectorParts[j])) {
+                j ++;
+            }            
+        }
+        if (j >= selectorParts.length) {
+            matched = true;
+        }
+        if (matched) {
+            console.log('element',element, 'rule',rule)
+        }
+
+    }
 
 
 }
-
-
+/**
+ * 支持简单选择器匹配（id、class、tagName）
+ * @param {*} element 
+ * @param {*} selector 
+ */
+function match(element, selector) {
+    // 匹配标签节点和选择器
+    if (!selector || !element.attributes) {
+        return false;
+    }
+    // 拆分三种简单选择器
+    if (selector.charAt(0) === "#") {
+        var attr = element.attributes.filter(attr => attr.name === "id");
+        if (attr && attr.value === selector.replace("#",'')) {
+            return true;
+        }
+        
+    }else if (selector.charAt(0) === ".") {
+        var attr = element.attributes.filter(attr => attr.name === ".");
+        if (attr && attr.value === selector.replace(".","")) {
+            return true;
+        }
+    }else {
+        if (element.tagName === selector) {
+            return true;
+        }
+    }
+    return false;
+}
 
 module.exports.parseHTML = function parseHTML(html){
     // 初始状态
