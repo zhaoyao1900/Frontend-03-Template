@@ -10,7 +10,7 @@ let stack = [{type: "document", children: []}]; // 用stack构建 DOM
  * @param {*} token 
  */
 function emit(token){
-    // console.log(token);
+    console.log(token);
 
     // 取出栈顶
     let top = stack[stack.length -1]
@@ -86,7 +86,7 @@ function data(c){
         return tagOpen
     }else if (c === EOF) {
         emit({
-            type: ""
+            type: "EOF"
         })
         return;
     }else{
@@ -169,6 +169,7 @@ function tagName(c){
 function selfClosingStartTag(c){
     if (c === '>') {
         currentToken.isSelfClosing = true;
+        emit(currentToken);
         return data;
     }else if (c === EOF) {
         
@@ -191,7 +192,7 @@ function beforeAttributeName(c){
     }else if (c === '=') {
     }else{
         currentAttribute = {
-            name: c, //warning: 视频中 ""
+            name: '', 
             value:''
         }
 
@@ -203,7 +204,7 @@ function beforeAttributeName(c){
  * @param {*} c 
  */
 function beforeAttributeValue(c) {
-    if(c.match(/^[\n\t\f ]$/) || c === '/' || c === '>' || c === EOF){
+    if(c.match(/^[\t\n\f ]$/) || c === '/' || c === '>' || c === EOF){
         return beforeAttributeValue;
     }else if (c === '\"') { //双引号
         return doubleQuotedAttributeValue;
@@ -255,7 +256,7 @@ function singleQuotedAttributeValue(c){
  * @param {*} c 
  */
 function afterQuotedAttributeValue(c){
-    if (c.match(/^[\n\t\f ]$/)) {
+    if (c.match(/^[\t\n\f ]$/)) {
         return beforeAttributeName;
     }else if (c === '/') {
         return selfClosingStartTag;
@@ -276,7 +277,7 @@ function afterQuotedAttributeValue(c){
  * @param {*} c 
  */
 function unQuotedAttributeValue(c) {
-    if (c.match(/^[\n\t\f ]$/)) {
+    if (c.match(/^[\t\n\f ]$/)) {
         currentToken[currentAttribute.name] = currentAttribute.value;
         return beforeAttributeValue;
     }else if (c === '/') {
@@ -313,7 +314,7 @@ function attributeName(c){
     }else if (c === '\"' || c === "'" || c === '<') {
         
     }else {
-        currentAttribute.value += c;
+        currentAttribute.name += c;
         return attributeName;
     }
 
@@ -325,11 +326,13 @@ function attributeName(c){
  */
 function afterAttributeName(c){
 
-    if (c.match(/^[\n\t\f ]$/)) {
-        return attributeName;
+    if (c.match(/^[\t\n\f ]$/)) {
+        return afterAttributeName;
     }else if (c === '/') {
         return selfClosingStartTag;
-    }else if (c === '>') {
+    }else if (c === '=') {
+        return beforeAttributeName;
+    } if (c === '>') {
         currentToken[currentAttribute.name] = currentAttribute.value;
         emit(currentToken);
         return data;
@@ -353,7 +356,7 @@ let rules = []; // css 规则集
  */
 function addCSSRules(text) {
     var ast = css.parse(text);
-    console.log(JSON.stringify(ast,null, "  "))
+    // console.log(JSON.stringify(ast,null, "  "))
     rules = [...ast.stylesheet.rules];
 }
 /**
@@ -397,7 +400,7 @@ function computeCSS(element){
 
 }
 /**
- * 支持简单选择器匹配（id、class、tagName）
+ * 支持简单选择器匹配（id、class、tagName）,每个标签和所有样式依次匹配。
  * @param {*} element 
  * @param {*} selector 
  */
