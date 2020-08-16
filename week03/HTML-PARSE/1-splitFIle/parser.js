@@ -1,7 +1,7 @@
 const css = require('css');
 let currentToken = null; // 已经解析的 token
-let currentAttribute = null;  
-let currentTextNode = null;
+let currentAttribute = null;  // 当前属性
+let currentTextNode = null;   // 当前文本
 const EOF = Symbol('EOF'); // EOF：end of file
 let stack = [{type: "document", children: []}]; // 用stack构建 DOM 
 
@@ -399,10 +399,22 @@ function computeCSS(element){
         }
         // 生产 computed 属性
         if (matched) {
+            let sp = specificity(rule.selectors[0]);
             let computedStyle = element.computedStyle;
             for (const declaration of rule.declarations) {
                 if (!computedStyle[declaration.property])
                     computedStyle[declaration.property] = {};
+
+
+                if (!computedStyle[declaration.property].specificity) {// 没有优先级
+                    computedStyle[declaration.property].value = declaration.value;
+                    computedStyle[declaration.property].specificity = sp;
+                }else if (compare(computedStyle[declaration.property].specificity, sp) < 0) { //新旧比较
+                    computedStyle[declaration.property].value = declaration.value;
+                    computedStyle[declaration.property].specificity = sp;
+
+                }
+                
                 computedStyle[declaration.property].value = declaration.value;
             }
 
@@ -443,6 +455,39 @@ function match(element, selector) {
     }
     return false;
 }
+/**
+ * 用四元组表示选择器
+ * @param {*} selector 
+ */
+function specificity(selector){
+    let p = [0,0,0,0];
+    let selectorParts = selector.split(" ");
+    for (const iterator of selectorParts) {// 遍历选择器数组，记录不同选择器出现次数
+        if (iterator.charAt(0) === '#') {
+            p[1] += 1;
+        }else if(iterator.charAt(0) === '.'){
+            p[2] += 1;
+        }else {
+            p[3] += 1;
+        }
+    }
+    return p;
+}
+/**
+ * 得出优先级次序
+ * @param {*} sp1 
+ * @param {*} sq2 
+ */
+function compare(sp1, sq2){
+    if(sp1[0] - sq2[0]){
+        return sp1[0] - sq2[0];
+    }else if (sp1[1] - sq2[1]) {
+        return sp1[1] - sq2[1];
+    }else if (sp1[2] - sq2[2]) {
+        return sp1[1] - sq2[1];
+    }
+    return sp1[3] - sq2[3]
+}
 
 module.exports.parseHTML = function parseHTML(html){
     // 初始状态
@@ -454,6 +499,5 @@ module.exports.parseHTML = function parseHTML(html){
     // EOF 状态机最后一个状态输入,
     state = state(EOF);
 
-
-    console.log('stack',stack[0])
+    return stack[0];
 }
