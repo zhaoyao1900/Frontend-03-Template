@@ -1,7 +1,7 @@
 const css = require('css');
 let currentToken = null; // 已经解析的 token
-let currentAttribute = null;  // 当前属性
-let currentTextNode = null;   // 当前文本
+let currentAttribute = null;  
+let currentTextNode = null;
 const EOF = Symbol('EOF'); // EOF：end of file
 let stack = [{type: "document", children: []}]; // 用stack构建 DOM 
 
@@ -10,7 +10,7 @@ let stack = [{type: "document", children: []}]; // 用stack构建 DOM
  * @param {*} token 
  */
 function emit(token){
-    console.log(token);
+    // console.log(token);
 
     // 取出栈顶
     let top = stack[stack.length -1]
@@ -444,9 +444,13 @@ function match(element, selector) {
         }
         
     }else if (selector.charAt(0) === ".") {
-        var attr = element.attributes.filter(attr => attr.name === ".")[0];
-        if (attr && attr.value === selector.replace(".","")) {
-            return true;
+        // 多 class 
+        let attr = element.attributes.filter(attr => attr.name === "class")[0];
+        if(attr){
+            let arr = attr.value.split(" ");
+            if (attr && arr.indexOf(selector.replace('.', '')) >= 0) {
+                return true;
+              }
         }
     }else {
         if (element.tagName === selector) {
