@@ -47,18 +47,18 @@ function emit(token){
             stack.push(element)
         }
         
-        currentTextToken = null; //清空文本
+        currentTextNode = null; //清空文本
     }else if (token.type === 'endTag') {
         if (top.tagName !== token.tagName) { // 标签是否闭合
             throw new Error("Tag start end doen't match!")
         }else{
-            top.children.push(currentTextNode);
 
             //遇到 style 结束标签，取出其中所有内容开始解析。
             if (top.tagName === 'style') {
                 addCSSRules(top.children[0].content)
             }
-            stack.pop()
+            
+            stack.pop();
         }
         currentTextToken = null;
     }else if (token.type === 'text') {
@@ -86,7 +86,7 @@ function data(c){
         return tagOpen
     }else if (c === EOF) {
         emit({
-            type: ""
+            type: 'EOF'
         })
         return;
     }else{
@@ -169,6 +169,7 @@ function tagName(c){
 function selfClosingStartTag(c){
     if (c === '>') {
         currentToken.isSelfClosing = true;
+        emit(currentToken);
         return data;
     }else if (c === EOF) {
         
@@ -191,7 +192,7 @@ function beforeAttributeName(c){
     }else if (c === '=') {
     }else{
         currentAttribute = {
-            name: c, //warning: 视频中 ""
+            name: '', 
             value:''
         }
 
@@ -246,7 +247,7 @@ function singleQuotedAttributeValue(c){
 
     }else{
         currentAttribute.value += c;
-        return doubleQuotedAttributeValue;
+        return singleQuotedAttributeValue;
     }
 }
 
@@ -278,7 +279,7 @@ function afterQuotedAttributeValue(c){
 function unQuotedAttributeValue(c) {
     if (c.match(/^[\n\t\f ]$/)) {
         currentToken[currentAttribute.name] = currentAttribute.value;
-        return beforeAttributeValue;
+        return beforeAttributeName;
     }else if (c === '/') {
         currentToken[currentAttribute.name] = currentAttribute.value;
         return selfClosingStartTag;
@@ -313,7 +314,7 @@ function attributeName(c){
     }else if (c === '\"' || c === "'" || c === '<') {
         
     }else {
-        currentAttribute.value += c;
+        currentAttribute.name += c;
         return attributeName;
     }
 
@@ -329,14 +330,14 @@ function afterAttributeName(c){
         return attributeName;
     }else if (c === '/') {
         return selfClosingStartTag;
-    }else if (c === '>') {
-        currentToken[currentAttribute.name] = currentAttribute.value;
+    }else if(c === '='){
+        return beforeAttributeValue;
+    } else if (c === '>') {
         emit(currentToken);
         return data;
     }if (c === EOF) {
         
     }else{
-        currentToken[currentAttribute.name] = currentAttribute.value;
         currentAttribute = {
             name:'',
             value:''
@@ -353,8 +354,8 @@ let rules = []; // css 规则集
  */
 function addCSSRules(text) {
     var ast = css.parse(text);
-    console.log(JSON.stringify(ast,null, "  "))
     rules = [...ast.stylesheet.rules];
+    // console.log(JSON.stringify(ast,null, "  "))
 }
 /**
  * 将 CSS 融入 DOM
@@ -380,7 +381,7 @@ function computeCSS(element){
 
         let matched = false;//是否匹配
         let j = 1; // 选择器位置
-        for (let index = 0; index < elements.length; index++) {
+        for (let i = 0; i < elements.length; i++) {
             if (match(elements[i], selectorParts[j])) {
                 j ++;
             }            
@@ -389,6 +390,14 @@ function computeCSS(element){
             matched = true;
         }
         if (matched) {
+            let computedStyle = element.computedStyle;
+            for (const declaration of rule.declarations) {
+                if (!computedStyle[declaration.property]) {
+                    computedStyle[declaration.property] = {};
+                }
+                computedStyle[declaration.property].value = declaration.value;
+            }
+            element.computedStyle = computedStyle;
             console.log('element',element, 'rule',rule)
         }
 
@@ -408,13 +417,13 @@ function match(element, selector) {
     }
     // 拆分三种简单选择器
     if (selector.charAt(0) === "#") {
-        var attr = element.attributes.filter(attr => attr.name === "id");
+        var attr = element.attributes.filter(attr => attr.name === "id")[0];
         if (attr && attr.value === selector.replace("#",'')) {
             return true;
         }
         
     }else if (selector.charAt(0) === ".") {
-        var attr = element.attributes.filter(attr => attr.name === ".");
+        var attr = element.attributes.filter(attr => attr.name === ".")[0];
         if (attr && attr.value === selector.replace(".","")) {
             return true;
         }
@@ -435,7 +444,6 @@ module.exports.parseHTML = function parseHTML(html){
 
     // EOF 状态机最后一个状态输入,
     state = state(EOF);
-
 
     console.log('stack',stack[0])
 }
