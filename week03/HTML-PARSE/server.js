@@ -23,12 +23,22 @@ http.createServer((request, response)=>{
                         width: 30px;
                         background-color: #ff1111;
                     }
+                    .text{
+                      font-size: 10px;
+                    }
+                    .textBorder{
+                        border: 1px solid #dadce0;
+                    }
+                    div.a#a{
+                        background-color: #f1e05a
+                    }
                 </style>
             </head>
             <body>
-                <div>
+                <div class="box">
                     <img id="myid" />
-                    <img />
+                    <span class="text textBorder"></span>
+                    <img id="a" class="a"/>
                 </div>
             </body>
         </html>`);
