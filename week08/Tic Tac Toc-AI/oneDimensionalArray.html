@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Tic Tac Toc</title>
+    <style>
+        .cell {
+            width: 100px;
+            height: 100px;
+            /* 默认是baseline */
+            display: inline-block;
+            background-color: rgb(0, 255, 5);
+            border: 1px solid white;
+            vertical-align: middle;
+
+            /* line-heignt 配合 height 实现文字垂直居中。同样适用于 emoji 和 ifount */
+            line-height: 100px;
+            font-size: 50px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="board"></div>
+    <script>
+        // 一维数组表示棋盘
+        let pattern = [
+            0, 2, 0,
+            0, 1, 0,
+            0, 0, 0,
+        ]
+        // 记录棋子状态
+        let color = 1;
+
+        // 画出棋盘
+        const show = (pattern) => {
+            let board = document.getElementById('board');
+
+            // 清空 board
+            board.innerText = "";
+
+            // 双层遍历出二维数组每个元素
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    // 为每个元素创建 cell 
+                    let cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.innerText =
+                        pattern[i * 3 +j] === 2 ? "❌" :
+                        pattern[i * 3 +j] === 1 ? "⭕️" : "";
+                    // cell 点击切换状态
+                    cell.addEventListener('click', () => move(j, i));
+                    board.appendChild(cell);
+                }
+                // 换行处理
+                board.appendChild(document.createElement('br'));
+            }
+            console.log('choice',baseChoice(pattern, color));
+
+        }
+
+        // 定位棋子改变状态
+        const move = (x, y) => {
+            pattern[y * 3 + x] = color;
+            // 检查输赢
+            if (check(pattern, color)) {
+                alert(color === 2 ? "❌ is winner" : "⭕️ is winner" ) 
+            }
+            color = 3 - color; // 来回切换 1 和 2 
+            show(pattern);
+            if (willWin(pattern, color)) {
+                console.log(color === 2 ? "❌ will win" : "⭕️ will win");
+            }
+        }
+
+        // 检查每行、每列、两斜线
+        const check = (pattern, color) => {
+            // 检查每一横行
+            for(let i = 0; i < 3; i++){
+                let win = true;
+                for(let j = 0; j < 3; j++){
+                    if (pattern[i * 3 +j] !== color) {
+                        win = false
+                    }
+                }
+                if (win) {
+                    return true;
+                }
+            }
+
+            // 检查每一列
+            for(let i = 0; i < 3; i++){
+                let win = true;
+                for(let j = 0; j < 3; j++){
+                    if(pattern[i * 3 + j] !== color){
+                        win = false;
+                    }
+                }
+                if (win) {
+                    return true;
+                }
+            }
+
+            // 检查(0,0) (1,1) (2,2)的斜线
+            { //利用 let 块级作用域特点。 
+                let win = true;
+                for(let i = 0; i < 3; i++){
+                    // 特点 x,y 坐标相同。
+                    if(pattern[i][i] !== color){
+                        win = false;
+                    }
+                }
+                if (win) {
+                    return true;
+                }
+
+            }
+
+            //检查 (0,2) (1,1) (2,0)的斜线
+            {
+                let win = true;
+                for(let i = 0; i < 3; i++){
+                    if(pattern[i][2-i] !== color){
+                        win = false;
+                    }
+                }
+                if (win) {
+                    return true;
+                }
+            }
+        }
+
+        // 克隆一份棋局
+        const clone = (pattern) => JSON.parse(JSON.stringify(pattern));
+
+        // 检查所有空的位置，是否有赢的可能
+        const willWin = (pattern, color) => {
+            for(let i = 0; i < 3 ; i++){
+                for(let j = 0; j < 3; j++){
+                    if (pattern[i][j]) // 空位
+                        continue;
+                    
+                    let temp = clone(pattern);
+                    temp[i][j] = color;
+                    if (check(temp, color)) {
+                        return [j, i];
+                    }
+                }
+            }
+            return null;
+        }
+
+        // AI 找到对方的最差局面
+        const baseChoice = (pattern, color) => {
+            let p; // 最好位置
+            if (p = willWin(pattern, color)) {
+                return{
+                    point: p,  
+                    result: 1, // -1 输 、1 赢 、0 和
+                }
+            }
+
+            let result = -2; // 
+            let point = null;
+
+            // 尝试每个空位
+            for(let i = 0; i < 3; i++){
+                for(let j = 0; j < 3; j++){
+                    if (pattern[i][j]) {
+                        continue;
+                    }
+                    
+                    let temp = clone(pattern);
+                    temp[i][j] = color;
+                    let r = baseChoice(temp, 3 - color).result;
+
+                    if (- r > result) {
+                        result = - r;
+                        point = [j, i];
+                    }
+                }
+            }
+            return{
+                point: point,
+                result: point ? result : 0
+            }
+
+        }
+
+
+        // 初始化棋盘
+        show(pattern);
+
+    </script>
+</body>
+
+</html>
