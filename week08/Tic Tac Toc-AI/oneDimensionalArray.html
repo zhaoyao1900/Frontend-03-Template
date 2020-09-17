@@ -26,8 +26,8 @@
     <script>
         // 一维数组表示棋盘
         let pattern = [
+            0, 0, 0,
             0, 2, 0,
-            0, 1, 0,
             0, 0, 0,
         ]
         // 记录棋子状态
@@ -50,9 +50,7 @@
                         pattern[i * 3 +j] === 2 ? "❌" :
                         pattern[i * 3 +j] === 1 ? "⭕️" : "";
                     // cell 点击切换状态
-                    
-                    cell.addEventListener('click', () => move(j, i));
-                    
+                    cell.addEventListener('click', () => userMove(j, i));
                     board.appendChild(cell);
                 }
                 // 换行处理
@@ -62,21 +60,28 @@
         }
 
         // 定位棋子改变状态
-        const move = (x, y) => {
+        const userMove = (x, y) => {
             pattern[y * 3 + x] = color;
             // 检查输赢
             if (check(pattern, color)) {
                 alert(color === 2 ? "❌ is winner" : "⭕️ is winner" ) 
             }
             color = 3 - color; // 来回切换 1 和 2 
-            show(pattern);
-
-            console.log('choice',baseChoice(pattern, color));
+            show(pattern);            
+            computedMove();
         }
 
         // AI 
-        const computedMove = (x, y) => {
-
+        const computedMove = () => {
+            let choice = bastChoice(pattern, color);
+            if(choice.point){ // 走最佳位置
+                pattern[choice.point[1] * 3 + choice.point[0]] = color;
+            }
+            if (check(pattern, color)) {
+                alert(color === 2 ? "❌ is winner" : "⭕️ is winner" ) 
+            }
+            color = 3 - color;
+            show(pattern);
         }
 
         // 检查每行、每列、两斜线
@@ -111,12 +116,12 @@
 
             // 检查(0,0) (1,1) (2,2)的斜线
             // 0   1   2
-            // 0 , 4 , 7  pattern 中 index
+            // 0 , 4 , 8  pattern 中 index
             { //利用 let 块级作用域特点。 
                 let win = true;
                 for(let i = 0; i < 3; i++){
                     // 特点 x,y 坐标相同。
-                    if(pattern[i * 3 + 1] !== color){
+                    if(pattern[i * 3 + i] !== color){
                         win = false;
                     }
                 }
@@ -127,12 +132,12 @@
             }
 
             //检查 (0,2) (1,1) (2,0)的斜线
-            // 0  1  2 
+            // 0  1  2  
             // 2  4  6 pattern 中 index
             {
                 let win = true;
                 for(let i = 0; i < 3; i++){
-                    if(pattern[ i * i + 2 ] !== color){
+                    if(pattern[ i * 3 + 2 - i ] !== color){
                         win = false;
                     }
                 }
@@ -155,7 +160,7 @@
                     let temp = clone(pattern);
                     temp[i * 3 + j] = color;
                     if (check(temp, color)) {
-                        return i * 3 + j;
+                        return [j, i];
                     }
                 }
             }
@@ -163,7 +168,7 @@
         }
 
         // AI 找到对方的最差局面
-        const baseChoice = (pattern, color) => {
+        const bastChoice = (pattern, color) => {
             let p; // 最好位置
             if (p = willWin(pattern, color)) {
                 return{
@@ -172,7 +177,7 @@
                 }
             }
 
-            let result = -2; // 
+            let result = -1; // 
             let point = null;
 
             // 尝试每个空位
@@ -184,11 +189,11 @@
                         
                         let temp = clone(pattern);
                         temp[i * 3 + j] = color;
-                        let r = baseChoice(temp, 3 - color).result;
+                        let r = bastChoice(temp, 3 - color).result;
 
-                        if (- r > result) {
+                        if (- r >= result) {
                             result = - r;
-                            point = [i , j];
+                            point = [j , i];
                         }
 
                         // 剪枝：发现赢的空位，终止循环。
