@@ -50,13 +50,14 @@
                         pattern[i * 3 +j] === 2 ? "❌" :
                         pattern[i * 3 +j] === 1 ? "⭕️" : "";
                     // cell 点击切换状态
+                    
                     cell.addEventListener('click', () => move(j, i));
+                    
                     board.appendChild(cell);
                 }
                 // 换行处理
                 board.appendChild(document.createElement('br'));
             }
-            console.log('choice',baseChoice(pattern, color));
 
         }
 
@@ -69,9 +70,13 @@
             }
             color = 3 - color; // 来回切换 1 和 2 
             show(pattern);
-            if (willWin(pattern, color)) {
-                console.log(color === 2 ? "❌ will win" : "⭕️ will win");
-            }
+
+            console.log('choice',baseChoice(pattern, color));
+        }
+
+        // AI 
+        const computedMove = (x, y) => {
+
         }
 
         // 检查每行、每列、两斜线
@@ -90,10 +95,12 @@
             }
 
             // 检查每一列
+            // 0 0  0 1   0 2   1 0  1 1  1 2  for 
+            //  0    3     6     1    4    7   pattern 中 index
             for(let i = 0; i < 3; i++){
                 let win = true;
                 for(let j = 0; j < 3; j++){
-                    if(pattern[i * 3 + j] !== color){
+                    if(pattern[j * 3 + i] !== color){
                         win = false;
                     }
                 }
@@ -103,11 +110,13 @@
             }
 
             // 检查(0,0) (1,1) (2,2)的斜线
+            // 0   1   2
+            // 0 , 4 , 7  pattern 中 index
             { //利用 let 块级作用域特点。 
                 let win = true;
                 for(let i = 0; i < 3; i++){
                     // 特点 x,y 坐标相同。
-                    if(pattern[i][i] !== color){
+                    if(pattern[i * 3 + 1] !== color){
                         win = false;
                     }
                 }
@@ -118,10 +127,12 @@
             }
 
             //检查 (0,2) (1,1) (2,0)的斜线
+            // 0  1  2 
+            // 2  4  6 pattern 中 index
             {
                 let win = true;
                 for(let i = 0; i < 3; i++){
-                    if(pattern[i][2-i] !== color){
+                    if(pattern[ i * i + 2 ] !== color){
                         win = false;
                     }
                 }
@@ -132,19 +143,19 @@
         }
 
         // 克隆一份棋局
-        const clone = (pattern) => JSON.parse(JSON.stringify(pattern));
+        const clone = (pattern) => Object.create(pattern);
 
         // 检查所有空的位置，是否有赢的可能
         const willWin = (pattern, color) => {
             for(let i = 0; i < 3 ; i++){
                 for(let j = 0; j < 3; j++){
-                    if (pattern[i][j]) // 空位
+                    if (pattern[i * 3 + j]) // 空位
                         continue;
                     
                     let temp = clone(pattern);
-                    temp[i][j] = color;
+                    temp[i * 3 + j] = color;
                     if (check(temp, color)) {
-                        return [j, i];
+                        return i * 3 + j;
                     }
                 }
             }
@@ -165,22 +176,28 @@
             let point = null;
 
             // 尝试每个空位
-            for(let i = 0; i < 3; i++){
-                for(let j = 0; j < 3; j++){
-                    if (pattern[i][j]) {
-                        continue;
-                    }
-                    
-                    let temp = clone(pattern);
-                    temp[i][j] = color;
-                    let r = baseChoice(temp, 3 - color).result;
+            outer:for(let i = 0; i < 3; i++){
+                    for(let j = 0; j < 3; j++){
+                        if (pattern[i * 3 + j]) {
+                            continue;
+                        }
+                        
+                        let temp = clone(pattern);
+                        temp[i * 3 + j] = color;
+                        let r = baseChoice(temp, 3 - color).result;
 
-                    if (- r > result) {
-                        result = - r;
-                        point = [j, i];
+                        if (- r > result) {
+                            result = - r;
+                            point = [i , j];
+                        }
+
+                        // 剪枝：发现赢的空位，终止循环。
+                        if (r == 1) {
+                            // 使用 label 跳出多层循环。
+                            break outer;
+                        }
                     }
                 }
-            }
             return{
                 point: point,
                 result: point ? result : 0
