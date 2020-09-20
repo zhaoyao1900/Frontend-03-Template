@@ -147,7 +147,7 @@
             }
         }
 
-        // 克隆一份棋局
+        // 克隆一份棋局（使用原型克隆，继承原有数据和方法。）
         const clone = (pattern) => Object.create(pattern);
 
         // 检查所有空的位置，是否有赢的可能
@@ -173,12 +173,12 @@
             if (p = willWin(pattern, color)) {
                 return{
                     point: p,  
-                    result: 1, // -1 输 、1 赢 、0 和
+                    result: 1,
                 }
             }
 
-            let result = -1; // 
-            let point = null;
+            let result = -1;  // -1 最差边界 、1 赢 、0 和
+            let point = null; // 落点
 
             // 尝试每个空位
             outer:for(let i = 0; i < 3; i++){
@@ -189,8 +189,10 @@
                         
                         let temp = clone(pattern);
                         temp[i * 3 + j] = color;
+                        // 拿到对方最最好策略
                         let r = bastChoice(temp, 3 - color).result;
 
+                        // 比对的得到对方最差点
                         if (- r >= result) {
                             result = - r;
                             point = [j , i];

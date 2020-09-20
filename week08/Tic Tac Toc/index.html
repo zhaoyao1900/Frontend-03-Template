@@ -30,11 +30,11 @@
             [0, 2, 0],
             [2, 0, 1],
         ]
-        // 记录棋子状态
+        // 记录棋子状态 1: ⭕️  2: ❌   切换状态: 3 - color;
         let color = 1;
 
         // 画出棋盘
-        show = (pattern) => {
+        const show = (pattern) => {
             let board = document.getElementById('board');
 
             // 清空 board
@@ -46,6 +46,7 @@
                     // 为每个元素创建 cell 
                     let cell = document.createElement('div');
                     cell.classList.add('cell');
+                    // 根据棋子类型设置图标
                     cell.innerText =
                         pattern[i][j] === 2 ? "❌" :
                         pattern[i][j] === 1 ? "⭕️" : "";
@@ -59,12 +60,13 @@
         }
 
         // 定位棋子改变状态
-        move = (x, y) => {
+        const move = (x, y) => {
             pattern[y][x] = color;
             // 检查输赢
             if (check(pattern, color)) {
                 alert(color === 2 ? "❌ is winner" : "⭕️ is winner" ) 
             }
+            // 交替落子
             color = 3 - color;
             show(pattern);
             if (willWin(pattern, color)) {
@@ -73,7 +75,7 @@
         }
 
         // 检查每行、每列、两斜线
-        check = (pattern, color) => {
+        const check = (pattern, color) => {
             // 检查每一横行
             for(let i = 0; i < 3; i++){
                 let win = true;
@@ -130,15 +132,16 @@
         }
 
         // 克隆一份棋局
-        clone = (pattern) => JSON.parse(JSON.stringify(pattern));
+        const clone = (pattern) => JSON.parse(JSON.stringify(pattern));
 
         // 检查所有空的位置，是否有赢的可能
-        willWin = (pattern, color) => {
+        const willWin = (pattern, color) => {
             for(let i = 0; i < 3 ; i++){
                 for(let j = 0; j < 3; j++){
                     if (pattern[i][j]) // 空位
                         continue;
                     
+                    // 克隆当前棋局，独立于显示的棋局。
                     let temp = clone(pattern);
                     temp[i][j] = color;
                     if (check(temp, color)) {
