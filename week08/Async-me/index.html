@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Async</title>
+        <style>
+            .light {
+                display: inline-flex;
+                justify-content: center;
+                align-items: center;
+                justify-content: space-around;
+                align-content: space-around;
+                width: 30%;
+                height: 150px;
+                border: 1px solid black;
+                border-radius: 5px;
+                background-color: lightslategray;
+            }
+            .light div:nth-child(1){
+                width: 120px;
+                height: 120px;
+                background-color: black;
+                border-radius: 50%;
+            }
+            .light div:nth-child(2){
+                width: 120px;
+                height: 120px;
+                background-color: black;
+                border-radius: 50%;
+            }
+            .light div:nth-child(3){
+                width: 120px;
+                height: 120px;
+                background-color: black;
+                border-radius: 50%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="light">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <script>
+            
+            // 开始循环
+            async function runloop(){
+                while (true) {
+                    await lightUp('green', 10);
+                    await lightUp('yellow', 2);
+                    await lightUp('red', 5);
+                }
+            }
+
+            // 异步点亮
+            function lightUp(type, timer) {
+                return new Promise((resolve, reject) => {
+                    const childs = document.getElementsByClassName('light')[0].children;
+                    // 先灭掉
+                    Array.prototype.forEach.call(childs,function (element) {
+                        element.style.backgroundColor = 'black';
+                    })
+                    // 点亮
+                    switch (type) {
+                        case 'red':
+                            childs[0].style.backgroundColor = 'red';
+                            break;
+                        case 'yellow':
+                            childs[1].style.backgroundColor = 'yellow';
+                            break;
+                        case 'green':
+                            childs[2].style.backgroundColor = 'green';
+                            break;
+                        default:
+                            break;
+                    }
+                    setInterval(() => resolve(true), timer * 1000);
+                })
+            }
+
+            runloop()
+
+        </script>
+    </body>
+</html>
