@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            .cell{
+                display: inline-block;
+                line-height: 7px;
+                width: 6px;
+                height: 6px;
+                background-color: gray;
+                border-bottom: 1px solid white;
+                border-right: 1px solid white;
+                vertical-align: top;
+            }
+            #container{
+                width: 701px;
+                font-size: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container">
+        </div>
+        <button onclick="localStroage['map'] = JSON.stringify(map)">save</button>
+        <script>
+            
+            let localStroage = window.localStorage;
+            // 一维数组表示地图
+            let map = localStroage['map'] ? JSON.parse(localStroage['map']) : Array(10000).fill(0);
+            
+            // 绘制地图
+            let container = document.getElementById('container');
+            for(let x = 0; x < 100; x++){
+                for(let y = 0; y < 100; y++){
+                    let cell = document.createElement('div');
+                    cell.classList.add('cell');
+
+                    if (map[100 * y + x] == 1) 
+                        cell.style.backgroundColor = 'black';
+                    
+                    // 鼠标移动修改状态
+                    cell.addEventListener('mousemove', e => {
+                        if (mousedown) {
+                            if (clear) { // 清空绘制
+                                cell.style.backgroundColor = '';
+                                map[100 * y + x] = 0;
+                            }else{
+                                cell.style.backgroundColor = 'black';
+                                map[100 * y + x] = 1;
+                            }
+                        }
+                    })
+
+                    container.appendChild(cell);
+                } 
+            }
+
+            // 鼠标是否按下
+            let mousedown = false;
+            let clear = false;
+
+            // 监听鼠标按下
+            document.addEventListener('mousedown', e => {
+                mousedown = true;
+                // 右键清空
+                clear = (e.which === 3);
+            })
+            // 鼠标抬起
+            document.addEventListener('mouseup', e => {
+                mousedown = false;
+            })
+            // 阻止默认弹出惨淡行为。
+            document.addEventListener('contextmenu', e => e.preventDefault());
+
+
+        </script>
+    </body>
+</html>
