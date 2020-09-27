@@ -19,11 +19,10 @@
         </style>
     </head>
     <body>
-        <div id="container">
-        </div>
+        <div id="container"></div>
         <button onclick="localStroage['map'] = JSON.stringify(map)">save</button>
         <script>
-            
+        
             let localStroage = window.localStorage;
             // 一维数组表示地图
             let map = localStroage['map'] ? JSON.parse(localStroage['map']) : Array(10000).fill(0);
@@ -72,25 +71,75 @@
             // 阻止默认弹出菜单行为。
             document.addEventListener('contextmenu', e => e.preventDefault());
 
+
+            // 有序的数据结构
+            class Sorted{
+
+                constructor(data, compare){
+                    this.data = data.slice();
+                    this.compare = compare || ( (a, b) => a - b );
+                }
+
+                // 拿到最小值
+                take(){
+                    if (!this.data.length) {
+                        return;
+                    }
+                    // 初始化最小值
+                    let min = this.data[0];
+                    let minIndex = 0;
+
+                    // 找最小值
+                    for (let i = 0; i < this.data.length; i++) {
+                        if (this.compare(this.data[i], min) < 0) {
+                            min = this.data[i];
+                            minIndex = i;
+                        }                        
+                    }
+
+                    this.data[minIndex] = this.data[this.data.length - 1];
+                    this.data.pop();
+                    return min;
+                }
+                give(v){    
+                    this.data.push(v);
+                }
+
+            }
+
+
+
             // 搜索路径
-            function path(map, start, end) {
+            async function findPath(map, start, end) {
                 // 创建队列（集合类型是所有搜索算法的灵魂）
                 // 栈：深度优先
                 // 队列：广度优先
                 let queue = [start];
+                // clone map 存储前一个节点
+                let table = Object.create(map);
 
                 // 入队
-                function insert(x, y) {
+               async function insert(x, y, pre) {
                     
                     if (x < 0 || x >= 100 || y < 0 || y >= 100) { // 设定搜索边界
                         return;
                     }
 
-                    // 防止重复搜索相同点
                     if (map[y * 100 + x]) {
                         return;
                     }
+
+     
+                    // 可视化搜索点
+                    // await sleep(30);
+                    container.children[y * 100 + x].style.backgroundColor = 'lightgreen';
+
+                    // 防止重复搜索相同点
                     map[y * 100 + x] = 2; 
+
+                    // 保存前一节点
+                    table[y * 100 + x] = pre;
+
 
                     // 入队
                     queue.push([x, y]);
@@ -100,21 +149,44 @@
                 while(queue.length){
                     // 出队
                     let [x, y] = queue.shift(); // 使用 pop() 切换到深度优先搜索
-                    console.log(x, y);
-                    // 到达终点返回
+                    // console.log(x, y);
+                    // 到达终点
                     if (x === end[0] && y === end[1]) {
-                        return true;
+                        
+                        // 在复制的棋盘上找到 pre 节点
+                        let path = [];
+                        while(x != start[0] || y != start[1]){
+                            path.push(map[y * 100 + x]);
+                            [x, y] = table[y * 100 + x];
+                            await sleep(3);
+                            container.children[y * 100 + x].style.backgroundColor = 'purple';
+                        }
+                        return path;
+
                     }
                     // 开始四个方向入队
-                    insert(x - 1, y); //左
-                    insert(x, y - 1); //下
-                    insert(x + 1, y); //右
-                    insert(x, y + 1); //上
+                    await insert(x - 1, y, [x, y]); //左
+                    await insert(x, y - 1, [x, y]); //下
+                    await insert(x + 1, y, [x, y]); //右
+                    await insert(x, y + 1, [x, y]); //上
+
+                    // 斜线上
+                    await insert(x - 1, y - 1, [x, y]);
+                    await insert(x + 1, y - 1, [x, y]);
+                    await insert(x - 1, y + 1, [x, y]);
+                    await insert(x + 1, y + 1, [x, y]);
+
 
                 }
-
+                return null;
             }
 
+
+            function sleep(t) {
+                return new Promise((resolve) => {
+                    setTimeout(resolve, t);
+                })
+            }
         </script>
     </body>
 </html>
