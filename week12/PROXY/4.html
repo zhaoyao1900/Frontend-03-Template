@@ -1,0 +1,55 @@
+<script>
+    let objcet = {
+        a: 1,
+        b: 2
+    }
+    let callbacks = new Map(); // 所有
+    let usedReactivties = []; // 已经使用的 reactive 包装过对象
+
+    // 建立 reactive 和 effect 的连接，获取函数中使用的变量
+    let po = reactive(objcet);
+
+    effect( () => {
+        console.log(po.a);
+    })
+
+
+    function effect(callback) {
+        usedReactivties = [];
+        callback(); // 调用一次在 get 中获取使用变量
+        console.log(usedReactivties);
+
+        for (const reactivity of usedReactivties) {
+            // 防止多次注册
+            if (!callbacks.has(reactivity[0])) {
+                callbacks.set(reactivity[0], new Map());
+            }
+            if (!callbacks.get(reactivity[0]).has(reactivity[1])) {
+                callbacks.get(reactivity[0]).set(reactivity[1], []);
+            }
+            callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
+        }
+        console.log('callback', callbacks)
+    }
+
+    function reactive(object) {
+        return new Proxy(object, {
+            // 函数中使用 reactive 包装过对象，会在调用时触发 get
+            get(obj, prop, val){
+                usedReactivties.push([obj, prop]);
+                return obj[prop];
+            },
+            set(obj, prop ,val){
+                obj[prop] = val;
+                if (callbacks.get(obj))
+                    if (callbacks.get(obj).get(prop)) 
+                        for (const callback of callbacks.get(obj).get(prop)) {
+                            callback();
+                        }
+                
+                return obj[prop];
+            }
+        });
+    }
+
+</script>

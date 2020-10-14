@@ -1,0 +1,19 @@
+<script>
+    // 普通数据类型对象，无法被监听
+    let object = {
+        a: 1,
+        b: 2,
+    }
+
+    // 只有实例会触发
+    let po = new Proxy(object,{
+        // 即使设置没有的属性也会触发 set 函数
+        set(obj, prop, val){
+            console.log(obj, prop, val);
+        },
+        get(target, prop, receiver){
+            console.log('get',target, prop, receiver);
+        }
+    })
+
+</script>
