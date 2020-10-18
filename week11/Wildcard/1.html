@@ -1,0 +1,69 @@
+<script>
+    function find(source, pattern){
+        // 找出所有星号，方便最后一个星号进行多匹配
+        let startCount = 0;
+        for (let index = 0; index < pattern.length; index++) {
+            if (pattern[index] === '*') {
+                startCount ++;
+            }
+        }
+        // 处理边缘问题
+        if (startCount === 0) {
+            for (let index = 0; index < pattern.length; index++) {
+                if (pattern[index] !== source[index] && pattern[index] !== '?') {
+                    return false
+                }
+            }
+            return;
+        }
+
+        let i = 0; // pattern 的位置
+        let lastIndex = 0; // source 的位置
+
+        // 匹配首个星号之前的部分
+        for (i = 0; pattern[i] !== '*' ; i++) {
+            if (pattern[i] !== source[i] && pattern[i] !== "?") {
+                return false;
+            }
+            
+        }
+
+        lastIndex = i;
+
+        // 匹配星号之间模式串
+        for(let p = 0; p < startCount - 1; p++){
+            i++;
+            let subPattern = "";
+            while(pattern[i] !== '*'){
+                subPattern += pattern[i];
+                i++;
+            }
+
+            // 通过正则将？，替换成任意字符
+            let reg = new RegExp(subPattern.replace(/\?/g, "[\\s\\S]"), "g");
+            // 接着上面的位置继续向下找
+            reg.lastIndex = lastIndex;
+
+            // console.log(reg.exec(source));
+
+            if (!reg.exec(source)) {
+                return false;
+            }
+
+            lastIndex = reg.lastIndex;
+        }
+
+        // 匹配最后一个星号的后面的部分(从后先前匹配)
+        for(let j = 0; j <= source.length - lastIndex && pattern[pattern.length - j] !== '*'; j++){
+            if (pattern[pattern.length - j ] !== source[source.length - j] && pattern[pattern.length - j] !== "?") {
+                return false;
+            }
+        }
+        return true;
+        
+    }
+
+    // find('abcabcabxaac', 'a*b*bx*c')
+    // find('abcabcabxaac', 'a*b?*b?x*c')
+
+</script>
