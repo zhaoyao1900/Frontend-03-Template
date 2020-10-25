@@ -3,6 +3,7 @@
         a: 1,
         b: 2
     }
+    // 通过全局 callbacks 保存 effect 传入的回调
     let callbacks = [];
 
     let po = reactive(objcet);
@@ -11,6 +12,12 @@
         console.log(po.a);
     })
 
+    // 存储所有回调
+    // 存在性能问题，不能做到对回调中监听属性单独回调。
+    function effect(callback) {
+        callbacks.push(callback);
+    }
+
     function reactive(object) {
         return new Proxy(object, {
             get(obj, prop, val){
@@ -18,16 +25,14 @@
             },
             set(obj, prop ,val){
                 obj[prop] = val;
+                // 有属性设置的时候，触发回调
                 for (const callback of callbacks) {
-                    callback()
+                    callback();
                 }
                 return obj[prop];
             }
         });
     }
 
-    function effect(callback) {
-        callbacks.push(callback);
-    }
 
 </script>

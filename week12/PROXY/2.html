@@ -5,9 +5,11 @@
     }
     let po = reactive(object);
 
+    // 返回一个用 Proxy 包裹的实例。
     function reactive(object) {
         return new Proxy(object, {
             set(obj, prop, val){
+                // 修改目标对象值
                 obj[prop] = val;
                 console.log(obj, prop, val)
                 return obj[prop];
@@ -15,6 +17,7 @@
             },
             get(obj, prop, val){
                 console.log(obj, prop ,val)
+                // 直接返回值
                 return obj[prop];
             }
         })

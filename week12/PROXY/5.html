@@ -6,7 +6,7 @@
         b: 2
     }
     let callbacks = new Map(); // 所有副作用函数
-    let reactivties = new Map(); // reactive 缓存
+    let reactivties = new Map(); // 记录每个 reactive 缓存
     let usedReactivties = []; // 已经使用的 reactive 包装过对象
 
     // 建立 reactive 和 effect 的连接，获取函数中使用的变量
@@ -19,15 +19,18 @@
 
     function effect(callback) {
         usedReactivties = [];
-        callback(); // 调用一次在 get 中获取使用变量
+        callback(); // 调用一次在 get 中获取使用变量（reactive）
         console.log(usedReactivties);
 
+        // 存储函数中依赖，和回调对应关系。
         for (const reactivity of usedReactivties) {
             // 防止多次注册
             if (!callbacks.has(reactivity[0])) {
+                // 第一层，记录使用到的 reactive 对象
                 callbacks.set(reactivity[0], new Map());
             }
             if (!callbacks.get(reactivity[0]).has(reactivity[1])) {
+                // 第二层，记录属性对应的回调。
                 callbacks.get(reactivity[0]).set(reactivity[1], []);
             }
             callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
@@ -36,13 +39,16 @@
     }
 
     function reactive(object) {
+        // 利用缓存
         if (reactivties.has(objcet)) {
             return reactivties.get(objcet);
         }
         let proxy = new Proxy(object, {
             // 函数中使用 reactive 包装过对象，会在调用时触发 get
             get(obj, prop, val){
+                // 存储 reactive 对象，和用的属性值。
                 usedReactivties.push([obj, prop]);
+                // 为对象中存储对象值包裹 reactive
                 if(typeof obj[prop] === 'object'){
                     return reactive(obj[prop]);
                 }
@@ -50,6 +56,7 @@
             },
             set(obj, prop ,val){
                 obj[prop] = val;
+                // 触发对象某个属性，对应的回调。
                 if (callbacks.get(obj))
                     if (callbacks.get(obj).get(prop)) 
                         for (const callback of callbacks.get(obj).get(prop)) {
@@ -59,6 +66,7 @@
                 return obj[prop];
             }
         });
+        // 保证新对象属性之设置仍旧触发。
         reactivties.set(objcet, proxy);
         return proxy;
     }

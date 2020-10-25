@@ -9,7 +9,7 @@
     let po = new Proxy(object,{
         // 即使设置没有的属性也会触发 set 函数
         set(obj, prop, val){
-            console.log(obj, prop, val);
+            console.log('set',obj, prop, val);
         },
         get(target, prop, receiver){
             console.log('get',target, prop, receiver);
