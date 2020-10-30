@@ -4,7 +4,7 @@
  * @param {*} attributes 属性列表
  * @param  {...any} children 子元素
  */
-export default function createElement(type, attributes, ...children) {
+export function createElement(type, attributes, ...children) {
     // 创建 Node
     let element = "";
     if (typeof type === 'string') {
@@ -30,8 +30,8 @@ export default function createElement(type, attributes, ...children) {
 // 基础组件类 
 export class Component {
     constructor(child){
-        this.root = this.render();
     }
+
     mountTo(parent) {
         parent.appendChild(this.root);
     }
@@ -52,7 +52,7 @@ class ElementWrapper extends Component {
 
 }
 // 包装文本
-class TextWrapper {
+class TextWrapper extends Component {
     constructor(child){
         this.root = document.createTextNode(child);
     }
