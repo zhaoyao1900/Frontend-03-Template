@@ -10,6 +10,7 @@ class Carousel extends Component {
     setAttribute(name, value){
         this.attributes[name] = value;
     }
+    // 创建轮播图 DOM
     render(){
         console.log(this.attributes.src);
         this.root = document.createElement('div');

@@ -19,7 +19,7 @@ function createElement(type, attributes, ...children) {
     }
     // 添加子元素
     for (let child of children) {
-        if (typeof child === 'string') {
+        if (typeof child === 'string') { // 创建文本节点
             child = new TextWrapper(child);
         }
         element.appendChild(child);
@@ -60,17 +60,21 @@ class TextWrapper{
     }
 }
 
+//自定义 Node 元素 
 class Div {
     constructor() {
         this.root = document.createElement("div");
 
     }
+    //安装到父元素
     mountTo(parent) {
         parent.appendChild(this.root);
     }
+    // 设置属性
     setAttribute(name, value) {
         this.root.setAttribute(name, value);
     }
+    // 设置子元素
     appendChild(child){
         child.mountTo(this.root);
     }
