@@ -21,24 +21,25 @@ export class Timeline {
 
     // 开始执行
     start() {
-        if (this.state !== "Inited") {
+        if (this.state !== "Inited") { //只有初始化后才能开始
             return;
         }
         this.state = "Started"; // 开始状态 
-        // 记录暂停时间
+        // 初始化暂停时间
         this[PAUSE_TIME]  = 0; 
         let startTime = Date.now();
         // 私有化 tick 函数
         this[TICK] = () => {
             let now = Date.now();
+            // 执行队列中的动画
             for (let animation of this[ANIMATIONS]) {
                 let t;
-                if (this[START_TIME].get(animation) < startTime) { // 
+                if (this[START_TIME].get(animation) < startTime) { // 是否已有动画执行
                     t = now - startTime - this[PAUSE_TIME] - animation.delay;
                 }else{ // 
                     t = now - this[START_TIME].get(animation) - this[PAUSE_TIME] - animation.delay;
                 }
-                // 超出运行事件，删除
+                // 超出运行时间，删除
                 if (animation.duration < t) {
                     this[ANIMATIONS].delete(animation);
                     t = animation.duration; // 防止超出动画时间
@@ -47,6 +48,7 @@ export class Timeline {
                     animation.reveive(t);
                 }
             }
+            // 完成一帧渲染后，剩余可以执行 js 代码的时间内，执行动画。
             this[TICK_HANDLER] = requestAnimationFrame(this[TICK]);
         }
         this[TICK]();
@@ -71,16 +73,18 @@ export class Timeline {
             return;
         }
         this.state = 'Paused';
+        // 暂停开始时间
         this[PAUSE_START] = Date.now();
         cancelAnimationFrame(this[TICK_HANDLER]);
 
     }
     // 继续
     resume() {
-        if (this.state !== "Paused") {
+        if (this.state !== "Paused") {  // 只有暂停可以继续
             return;
         }
         this.state = 'Started';
+        //计算暂停时间
         this[PAUSE_TIME]  += Date.now() - this[PAUSE_START]; 
         this[TICK]();
     }
@@ -125,8 +129,9 @@ export class Animation {
     reveive(time) {
         // 执行范围
         let range = (this.endValue - this.startValue);
+        // 动画类型
         let progress = this.timingFunction(time / this.duration);
         // 均匀执行曲线
-        this.object[this.property] = this.template(this.startValue + range * time / this.duration)
+        this.object[this.property] = this.template(this.startValue + range * progress);
     }
 }

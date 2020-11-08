@@ -13,7 +13,7 @@ export class Timeline {
 
         // 动画队列
         this[ANIMATIONS] = new Set();
-        // 添加时间
+        // 记录动画添加时间
         this[START_TIME] = new Map();
     }
 
@@ -23,20 +23,22 @@ export class Timeline {
         // 私有化 tick 函数
         this[TICK] = () => {
             let now = Date.now();
+            // 执行队列中的动画
             for (let animation of this[ANIMATIONS]) {
                 let t;
-                if (this[START_TIME].get(animation) < startTime) {
+                if (this[START_TIME].get(animation) < startTime) { // 是否已有动画执行
                     t = now - startTime;
                 }else{ // 
                     t = now - this[START_TIME].get(animation);
                 }
-                // 超出运行事件，删除
+                // 超出运行时间，删除
                 if (animation.duration < t) {
                     this[ANIMATIONS].delete(animation);
                     t = animation.duration; // 防止超出动画时间
                 }
                 animation.reveive(t);
             }
+            // 完成一帧渲染后，剩余可以执行 js 代码的时间内，执行动画。
             requestAnimationFrame(this[TICK]);
         }
         this[TICK]();
