@@ -68,7 +68,6 @@ export class Listener {
                             key = button
                         )
                         let context = contexts.get('mouse' + key)
-                        console.log('context==',context)
                         recognizer.move(event, context)
                         button = button << 1
                     }
@@ -76,7 +75,6 @@ export class Listener {
                
             }
             let mouseup = event => {
-                console.log('mouseup')
                 contexts.get('mouse' + (1 << event.button))
                 recognizer.end(event,context)
                 // 移除context
@@ -178,7 +176,6 @@ export class Recognizer{
     } 
     
     move(point, context) {
-        // console.log('move', point.clientX, point.clientY)
         let dx = point.clientX - context.startX , dy = point.clientY - context.startY;
 
         // 移动 10 px
@@ -198,12 +195,11 @@ export class Recognizer{
         }
     
         if (context.isPan) {
-            console.log('pan')
             this.dispatcher.dispatch('pan',{
                 startX: context.startX,
                 startY: context.startY,
-                clientX: context.clientX,
-                clientY: context.clientY,
+                clientX: point.clientX,
+                clientY: point.clientY,
                 isVertical: context.isVertical,
 
             })
@@ -211,6 +207,7 @@ export class Recognizer{
     
         // 存入一段时间内移动数据
         // 只存储 500 ms 范围内的点
+        console.log('points', context.points)
         context.points = context.points.filter(point => Date.now() - point.t < 500)
         context.points.push({
             t: Date.now(),
@@ -220,12 +217,9 @@ export class Recognizer{
     }
 
     end(point, context) {
-        // console.log('end', point.clientX, point.clientY)
-        console.log(point)
     
         // tap 事件
         if (context.isTap) {
-            console.log('tap')
             this.dispatch.dispatch('tap',{})
             clearTimeout(context.handle)
         }
@@ -233,7 +227,6 @@ export class Recognizer{
         // 长按 
         if (context.isPress) {
             this.dispatcher.dispatch('pressed', {})
-            console.log('pressed')
         }
     
         //计算 flick 速度
@@ -250,12 +243,11 @@ export class Recognizer{
     
         // 像素每毫秒
         if (v > 1.5) {
-            console.log('filck')
             this.dispatcher.dispatch('filck',{
                 startX: context.startX,
                 startY: context.startY,
-                clientX: context.clientX,
-                clientY: context.clientY,
+                clientX: point.clientX,
+                clientY: point.clientY,
                 isVertical: context.isVertical,
                 isFilck: context.isFilck,
                 velocity: v
@@ -266,7 +258,6 @@ export class Recognizer{
         }
 
         if (context.isPan) {
-            console.log('paned')
             this.dispatcher.dispatch('paned',{
                 startX: context.startX,
                 startY: context.startY,
