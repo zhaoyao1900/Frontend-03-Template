@@ -10,7 +10,7 @@ module.exports = class extends Generator {
         // this.option('babel'); // This method adds support for a `--babel` flag
     }
 
-    async initPackage(){
+    async initPackage() {
 
         // 拿到用户输入项目名称
         let answers = await this.prompt([
@@ -21,6 +21,7 @@ module.exports = class extends Generator {
                 default: this.appname
             }
         ])
+        this.answers = answers;
 
 
         // 描述要安装的依赖
@@ -30,26 +31,37 @@ module.exports = class extends Generator {
             "description": "工具链-1",
             "main": "generators/app/index.js",
             "scripts": {
-              "test": "echo \"Error: no test specified\" && exit 1"
+                "test": "echo \"Error: no test specified\" && exit 1"
             },
             "author": "",
             "license": "ISC",
             devDependencies: {
             },
             dependencies: {
-              "vue": '^16.2.0'
             }
-          };
-      
-          // 如果不存在 pakage.json 会直接创建
-          this.fs.extendJSON(this.destinationPath('package.json'), pkgJson);
-          // 安装依赖
-          this.npmInstall(["vue"],{"save-dev": false});
-          this.npmInstall(["webpack",'vue-loader'],{"save-dev": true});
+        };
+
+        // 如果不存在 pakage.json 会直接创建
+        this.fs.extendJSON(this.destinationPath('package.json'), [pkgJson]);
+        // 安装依赖
+        this.npmInstall(["vue"], { "save-dev": false });
+        this.npmInstall([
+            "webpack",
+            "vue-loader",
+            "vue-template-compiler",
+            "vue-style-loader",
+            "css-loader",
+            "copy-webpack-plugin",
+            "html-webpack-plugin"
+        ],
+            { "save-dev": true });
 
 
     }
 
+    /**
+     * 拷贝文件到指定位置
+     */
     conpyFiles() {
         this.fs.copyTpl(
             this.templatePath("helloWorld.vue"),
@@ -57,6 +69,25 @@ module.exports = class extends Generator {
             this.destinationPath("src/helloWorld.vue"),
             {}
         )
+
+        // 复制 webpack 配置
+        this.fs.copyTpl(
+            this.templatePath('webpack.config.js'),
+            this.destinationPath('webpack.config.js')
+        )
+
+        // 复制 main
+        this.fs.copyTpl(
+            this.templatePath('main.js'),
+            this.destinationPath('main.js')
+        )
+
+        this.fs.copyTpl(
+            this.templatePath('index.html'),
+            this.destinationPath("src/index.html"),
+            {title: this.answers.appname}
+        )
     }
+
 
 };
