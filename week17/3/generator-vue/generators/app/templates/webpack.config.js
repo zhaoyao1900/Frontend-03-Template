@@ -9,23 +9,17 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.vue$/, 
-                loader: "vue-loader"
+              test: /\.vue$/,
+              loader: 'vue-loader'
             },
-            // 普通的 js 文件以及 .vue 文件中的 <script>
             {
-                test: /\.js$/,
-                loader: "babel-loader" 
-
-            },
-            // 普通的 css 文件 .vue 文件中的 <style> 
-            {
-                test: /\/css$/, 
-                use: [
-                "vue-style-loader",
-                "css-loader"
-            ]}
-        ]
+              test: /\.css$/,
+              use: [
+                'vue-style-loader',
+                'css-loader'
+              ]
+            }
+          ]
     },
     plugins: [
         new VueLoaderPlugin(),
@@ -33,7 +27,7 @@ module.exports = {
             patterns: [
               { from: "src/*.html", to: "[name].[ext]" },
             ],
-          }),
+        }), 
         new HtmlWebpackPlugin({
             template: 'src/index.html',
         })

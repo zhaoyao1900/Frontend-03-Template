@@ -31,7 +31,8 @@ module.exports = class extends Generator {
             "description": "工具链-1",
             "main": "generators/app/index.js",
             "scripts": {
-                "test": "echo \"Error: no test specified\" && exit 1"
+                "test": "echo \"Error: no test specified\" && exit 1",
+                "build": "webpack"
             },
             "author": "",
             "license": "ISC",
@@ -46,7 +47,8 @@ module.exports = class extends Generator {
         // 安装依赖
         this.npmInstall(["vue"], { "save-dev": false });
         this.npmInstall([
-            "webpack",
+            "webpack@4.2.0",
+            "webpack@4.44.2",
             "vue-loader",
             "vue-template-compiler",
             "vue-style-loader",
@@ -64,9 +66,9 @@ module.exports = class extends Generator {
      */
     conpyFiles() {
         this.fs.copyTpl(
-            this.templatePath("helloWorld.vue"),
+            this.templatePath("HelloWorld.vue"),
             // 拷贝到的地方
-            this.destinationPath("src/helloWorld.vue"),
+            this.destinationPath("src/HelloWorld.vue"),
             {}
         )
 
@@ -79,7 +81,7 @@ module.exports = class extends Generator {
         // 复制 main
         this.fs.copyTpl(
             this.templatePath('main.js'),
-            this.destinationPath('main.js')
+            this.destinationPath('src/main.js')
         )
 
         this.fs.copyTpl(
