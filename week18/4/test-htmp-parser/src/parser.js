@@ -1,5 +1,4 @@
 import css from 'css';
-import {layout} from "./layout";
 const EOF = Symbol('EOF'); // EOF：end of file
 let stack; // 用stack构建 DOM 
 let currentToken; // 已经解析的 token
@@ -60,7 +59,7 @@ function emit(token){
             }
 
             // layout 需要知道子元素
-            layout(top);
+            // layout(top);
 
             stack.pop();
         }
@@ -271,8 +270,7 @@ function afterQuotedAttributeValue(c){
     }else if (c === EOF){
 
     }else {
-        currentAttribute.value += c;
-        return doubleQuotedAttributeValue;
+        throw new Error("unexpected charater \"" + c + "\"") ;
     }
 }
 
@@ -457,7 +455,7 @@ export default function parseHTML(html){
     // EOF 状态机最后一个状态输入,
     state = state(EOF);
 
-    console.log('stack',stack[0])
+    // console.log('stack',stack[0])
 
     return stack[0];
 }
