@@ -15,6 +15,7 @@
             "runtimeArgs": [
                 "--require", "@babel/register"
             ],
+            // 还原经 babel 翻译后，行位置变化的问题
             "sourceMaps": true,
             "program": "${workspaceFolder}/node_modules/.bin/mocha"
         }
