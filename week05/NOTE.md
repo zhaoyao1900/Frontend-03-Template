@@ -142,14 +142,14 @@ svg|a {}
 语法:
 选择器 + 声明（key:value）
 
-##Selector
+## Selector
 > 用于匹配 HTML 中的标签
 [Selector](https://www.w3.org/TR/selectors-3/)
 [Selector](https://www.w3.org/TR/selectors-4/)
 
 
 
-##Key
+## Key
 * Properties
 * Variables：--
 
@@ -163,7 +163,7 @@ svg|a {}
 }
 ```
 
-##Value 
+## Value 
 
 [value](https://www.w3.org/TR/css-values-4/)
 

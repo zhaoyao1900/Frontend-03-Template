@@ -7,7 +7,7 @@
 * Undefined
 * Symbol
 
-##Number
+## Number
     
 Float：小数点可以来回浮动。
 将数字拆成
@@ -29,13 +29,13 @@ Float：小数点可以来回浮动。
 0 .toSting
 ```
 
-##String 
+## String 
 * Character：字符集
 * Code Point：码点
 * Encoding：编码方式
 
 
-##字符集
+## 字符集
 * ASCII：表示 127 个字符 ，占用 1 个字节
 * Unicode：庞大的编码集
 * UCS：0000 到 FFFF 范围

@@ -1,13 +1,14 @@
 # 类型转换
 [TOC]
-##Unboxing 拆箱转换
->将`Object`转换为普通类型的过程。
+## Unboxing 拆箱转换
+>将`Object`转换为原始类型的过程。
  
- * ToPremitive：
- * toString vs valueOf
+ 整个过程称为 ToPremitive
+ 
+ * toString vs valueOf：
  * Symbol.toPrimitive
 
- 
+
 ```j
 // 拆箱转换，会根据不同表达式决定调用下列那个方法
 var o = {
@@ -26,7 +27,7 @@ x[o] = 1
 console.log("x"+o)
 ```
 
-##Boxing 装箱转换
+## Boxing 装箱转换
 
 ![boxing](media/boxing.png)
 

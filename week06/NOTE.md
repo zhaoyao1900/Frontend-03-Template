@@ -20,7 +20,7 @@
 
 HTML代码中可以书写开始 __Tag__ ，结束 __Tag__ ，和自封闭 __Tag__ 。
 
-一对起止 __Tag__ ，表示一个 __Element_ _ 。
+一对起止 __Tag__ ，表示一个 __Element__ 。
 
 DOM树中存储的是 __Element__ 和其它类型的节点（Node）。
 
@@ -38,7 +38,8 @@ CSS选择器选中的 __Element__ ，在排版时可能产生多个 __box__ 。
     
 * padding：
     位于`border`和`content`之间。
-    决定内部`content`可以拍部的大小。
+    决定内部`content`可以排布的大小。
+    
 * border
     
 * margin：
@@ -47,12 +48,12 @@ CSS选择器选中的 __Element__ ，在排版时可能产生多个 __box__ 。
 #### box-sizing
 > 定义计算元素总的宽度和高度。
 
-* border-box
+* border-box：告诉浏览器设置的宽高，是包含 border 和 padding 的。
 width = content width + padding width + border width
 height= content height + padding height + border height
 
 
-* content-box
+* content-box：告诉浏览器设置的宽高只是内容区域。
 width = content width
 height = content height
 
@@ -60,15 +61,15 @@ height = content height
 # CSS 排版｜正常流
 
 > 排版：将`HTML`可见的标签放入到页面正确的位置中。
-> CSS 排版最基本单位是盒和文字。
+> CSS 排版最基本单位是**盒和文字**。
 
 
 ## 正常流（normal flow）
 > 同日常的书写排版是一致的。从左到右，从上到下。
 
-正常流排版
+正常流排版流程：
 
-* 首届盒同文字进行。
+* 首先盒同文字放进行。
 * 计算盒在行中的排布
 * 计算行间的排布
 
@@ -77,10 +78,13 @@ height = content height
 inline-box：行级排布
 block-level-box：块级排布
 
-IFC：（inline format context）
-    行内部从左到右排布，
-BFC：(block format context)
-行之间上下排布。
+IFC：（inline formatting context）
+    行的内部从左到右排布，
+
+BFC：(block formatting context)
+    行之间上下排布。
+
+* BFC 创建的条件
 
 
 ![-w891](media/15988801839208.png)
@@ -130,7 +134,7 @@ BFC 的纵向排布中，上下两个块级元素，相邻`margin`会相互叠�
 **边距折叠只会发生在正常流的 BFC 中**
  
 
- # CSS排版｜BFC 合并
+# CSS排版｜BFC 合并
 
 * Block Container
     能容纳正常流的盒，里面就有`BFC`
