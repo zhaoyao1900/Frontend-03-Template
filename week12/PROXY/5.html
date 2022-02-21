@@ -6,7 +6,7 @@
         b: 2
     }
     let callbacks = new Map(); // 所有副作用函数
-    let reactivties = new Map(); // 记录每个 reactive 缓存
+    let reactivties = new Map(); // 记录每个 reactive 的缓存，避免重复创建 Proxy 对象
     let usedReactivties = []; // 已经使用的 reactive 包装过对象
 
     // 建立 reactive 和 effect 的连接，获取函数中使用的变量
@@ -39,7 +39,7 @@
     }
 
     function reactive(object) {
-        // 利用缓存
+        // 利用缓存，不再重复创建。
         if (reactivties.has(objcet)) {
             return reactivties.get(objcet);
         }
@@ -49,6 +49,7 @@
                 // 存储 reactive 对象，和用的属性值。
                 usedReactivties.push([obj, prop]);
                 // 为对象中存储对象值包裹 reactive
+                // 使用递归为属性值是对象类型创建响应式对象。
                 if(typeof obj[prop] === 'object'){
                     return reactive(obj[prop]);
                 }

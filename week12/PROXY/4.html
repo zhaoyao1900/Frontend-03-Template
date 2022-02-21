@@ -3,33 +3,40 @@
         a: 1,
         b: 2
     }
-    let callbacks = new Map(); // 所有
+    let callbacks = new Map(); // 所有副作用的集合
     let usedReactivties = []; // 已经使用的 reactive 包装过对象
 
     // 建立 reactive 和 effect 的连接，获取函数中使用的变量
     let po = reactive(objcet);
 
+    // 创建一个副作用
     effect( () => {
         console.log(po.a);
     })
 
 
+    // 创建副作用函数
     function effect(callback) {
+        // 清空之前存入的响应式对象
         usedReactivties = [];
-        callback(); // 调用一次在 get 中获取使用变量（reactive）
+        // 调用一次传入函数，以便触发内部使用的响应式对象的 get 方法。
+        callback();
         console.log(usedReactivties);
 
         // 存储函数中依赖，和回调对应关系。
         for (const reactivity of usedReactivties) {
-            // 防止多次注册
-            if (!callbacks.has(reactivity[0])) {
-                // 第一层，记录使用到的 reactive 对象
+            
+            // 第一层，记录使用到的 reactive 对象
+            if (!callbacks.has(reactivity[0])) { // 防止多次注册
+                // 用 Map 存储响应式对象的属性和副作用的关系
                 callbacks.set(reactivity[0], new Map());
             }
+            // 第二层，记录属性对应的回调。
             if (!callbacks.get(reactivity[0]).has(reactivity[1])) {
-                // 第二层，记录属性对应的回调。
+                // 用数组记录响应式对象属性对应的副作用集合
                 callbacks.get(reactivity[0]).set(reactivity[1], []);
             }
+            // 存储使用响应式对象属性的副作用
             callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
         }
         console.log('callback', callbacks)
@@ -46,7 +53,7 @@
             set(obj, prop ,val){
                 obj[prop] = val;
                 // 触发对象某个属性，对应的回调。
-                if (callbacks.get(obj))
+                if (callbacks.get(obj)) // 边界检查
                     if (callbacks.get(obj).get(prop)) 
                         for (const callback of callbacks.get(obj).get(prop)) {
                             callback();

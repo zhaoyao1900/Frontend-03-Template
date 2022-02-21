@@ -25,7 +25,7 @@
             },
             set(obj, prop ,val){
                 obj[prop] = val;
-                // 有属性设置的时候，触发回调
+                // 有属性设置的时候，触发回调，保证副作用使用的响应式对象始终是最新的值。
                 for (const callback of callbacks) {
                     callback();
                 }
